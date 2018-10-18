@@ -1,0 +1,2 @@
+Copy Unity Plugin API headers into this folder
+unless environment variable 'UNITY_PLUGIN_API_ROOT' points to Unity plugin API folder
