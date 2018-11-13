@@ -1,7 +1,7 @@
 {
     "name": "com.klab.profiling",
     "description": "Helper library for profiling Unity projects",
-    "version": "1.0.0-preview",
+    "version": "1.1.0-preview",
     "unity": "2018.2",
     "displayName": "KLab Profiling"
 }

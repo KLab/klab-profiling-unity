@@ -8,7 +8,7 @@ echo -- macOS plugin build
 BuildScriptsDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 PluginDirectory="$BuildScriptsDirectory/.."
 TempDirectory="$PluginDirectory/.temp"
-BuildDirectory="$PluginDirectory/../KLab/Profiling/Plugins/MacOS"
+BuildDirectory="$PluginDirectory/../Plugins/MacOS"
 UnityPluginApiDirectory="$UNITY_PLUGIN_API_ROOT"
 
 BuildType="Release"

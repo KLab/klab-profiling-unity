@@ -6,7 +6,7 @@ echo -- Windows plugin build
 :: Initialize arguments
 set PluginDirectory=%~dp0..
 set TempDirectory=%PluginDirectory%\.temp
-set BuildDirectory=%PluginDirectory%\..\KLab\Profiling\Plugins\Windows
+set BuildDirectory=%PluginDirectory%\..\Plugins\Windows
 
 set UnityPluginApiDirectory=%UNITY_PLUGIN_API_ROOT%
 

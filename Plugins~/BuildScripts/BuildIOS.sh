@@ -1,22 +1,18 @@
 #!bin/bash
 
-# Builds libraries for Linux
-echo -- Linux plugin build
+# Builds libraries for iOS
+echo -- iOS plugin build
 
 
 # Initialize arguments
-BuildScriptsDirectory="$(dirname $(readlink -f $0))"
+BuildScriptsDirectory="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 PluginDirectory="$BuildScriptsDirectory/.."
 TempDirectory="$PluginDirectory/.temp"
-BuildDirectory="$PluginDirectory/../KLab/Profiling/Plugins/Linux"
+BuildDirectory="$PluginDirectory/../Plugins/iOS"
 UnityPluginApiDirectory="$UNITY_PLUGIN_API_ROOT"
+ToolchainFile="$PluginDirectory/Vendor/ios-cmake/ios.toolchain.cmake"
 
 BuildType="Release"
-Abi="x86"
-echo $BuildScriptsDirectory
-if [ $(uname -m) = "x86_64" ]; then
-  Abi="x64"
-fi
 
 
 # Parse command line options
@@ -50,14 +46,22 @@ fi
 echo 
 echo 
 echo [Validation]
-echo $UnityPluginApiDirectory
+
+if [ -f "$ToolchainFile" ]; then
+    echo -- CMake iOS toolchain found
+else
+    echo -- \[ERROR\] CMake iOS toolchain not found
+    echo "           (CMake iOS toolchain (https://github.com/leetal/ios-cmake) expected in './Plugin~/Vendor/ios-cmake')"
+
+    exit -1
+fi
 if [ -f "$UnityPluginApiDirectory/IUnityInterface.h" ]; then
     echo -- Unity Plugin API found
 else
     echo -- \[ERROR\] Unity Plugin API not found
     echo "           ('UNITY_PLUGIN_API_ROOT' environment variable or header files in './Plugin~/Vendor/UnityPluginApi' expected)"
 
-    exit 1
+    exit -1
 fi
 
 
@@ -70,12 +74,12 @@ fi
 # Build binary
 echo 
 echo 
-echo [$Abi Build]
+echo [Fat Build]
 
 mkdir $TempDirectory
 
 cd $TempDirectory
-cmake "$PluginDirectory" -G"Unix Makefiles" -DCMAKE_BUILD_TYPE="$BuildType" -DKLAB_PROFILING_UNITY_PLUGIN_API_PATH="$UnityPluginApiDirectory" -DKLAB_PROFILING_OUTPUT_DIRECTORY="$BuildDirectory/$Abi"
+cmake "$PluginDirectory" -G"Unix Makefiles" -DCMAKE_BUILD_TYPE="$BuildType" -DCMAKE_TOOLCHAIN_FILE=$ToolchainFile -DKLAB_PROFILING_UNITY_PLUGIN_API_PATH="$UnityPluginApiDirectory" -DKLAB_PROFILING_OUTPUT_DIRECTORY="$BuildDirectory"
 make
 cd ..
 

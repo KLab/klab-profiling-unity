@@ -10,20 +10,20 @@ Building on the [native profiler plugin API introduced with Unity 2018.2](https:
 1. automatically forwards trace events to [Android's tracing API](https://developer.android.com/ndk/guides/tracing) if available, and  
 1. allows you to handle trace events in *C++*.
 
-If you're interested in how to handle trace events in *C#*, see [here](KLab/Profiling/Runtime/LowLevel/TraceUtility.cs) for the interface,
-and [here](KLab/Profiling/Runtime/Tests/LowLevel/TraceUtilityTests#L16) for an example.
+If you're interested in how to handle trace events in *C#*, see [here](Runtime/KLab/Profiling/LowLevel/TraceUtility.cs) for the interface,
+and [here](Tests/KLab/Profiling/Tests/LowLevel/TraceUtilityTests#L16) for an example.
 At *KLab* we use the *C#* interface for uploading the trace data to cloud storage for later analysis in long run performance tests.
 
 If you want to handle trace events in *C++* you have to implement the trace interface and
 link your implementation to the library during native build.
-See [here](Plugin~/Include/Klab/Profiling.hpp#L39) for the interface you have to implement.
-The *CMake* project provides a [convenience option for linking your trace handler](Plugin~/CMakeLists.txt#L14).
+See [here](Plugins~/Include/Klab/Profiling.hpp#L39) for the interface you have to implement.
+The *CMake* project provides a [convenience option for linking your trace handler](Plugins~/CMakeLists.txt#L14).
 
-The library uses a [utility interface](Plugin~/Include/Klab/Profiling.hpp#L83)
+The library uses a [utility interface](Plugins~/Include/Klab/Profiling.hpp#L83)
 for querying the ID of the execution thread and for converting UTF-16 strings to UTF-8.
 The interface works out-of-the-box on *Win32* and *POSIX* platforms.
 You can replace the default interface by providing a custom implementation and linking to it during native build.
-Again, the *CMake* project provides a [convenience option for that](Plugin~/CMakeLists.txt#L15).
+Again, the *CMake* project provides a [convenience option for that](Plugins~/CMakeLists.txt#L15).
 
 
 ## Importing Into Unity
@@ -34,7 +34,7 @@ It doesn't have any dependencies on other packages, but currently requires *Unit
 
 ## Native Plugin Build
 
-[Build scripts](Plugin~/BuildScripts) are available for building native *Android*, *iOS*, *Linux*, *macOS*, and *Win32* libraries.
+[Build scripts](Plugins~/BuildScripts) are available for building native *Android*, *iOS*, *Linux*, *macOS*, and *Win32* libraries.
 
 ### Common Prerequisites
 

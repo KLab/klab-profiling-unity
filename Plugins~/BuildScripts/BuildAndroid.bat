@@ -6,7 +6,7 @@ echo -- Android plugin build
 :: Initialize arguments
 set PluginDirectory=%~dp0..
 set TempDirectory=%PluginDirectory%\.temp
-set BuildDirectory=%PluginDirectory%\..\KLab\Profiling\Plugins\Android
+set BuildDirectory=%PluginDirectory%\..\Plugins\Android
 
 set UnityPluginApiDirectory=%UNITY_PLUGIN_API_ROOT%
 
