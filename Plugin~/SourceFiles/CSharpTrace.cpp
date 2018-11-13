@@ -64,60 +64,7 @@ namespace KLab { namespace Profiling { namespace Trace
 {
     bool CSharpTrace::IsTracing() const
     {
-        return _traceFrame;
-    }
-
-
-    void CSharpTrace::Flip()
-    {
-        const auto deltaMs = _frameTimer.FlipMs();
-
-
-        // Flip frames if traced last frame
-        if (_traceFrame)
-        {
-            KLab_Profiling_Trace_FlipFrameInfo info   = { _frameIndex, deltaMs, uint16_t(_eventBuffer.GetLength()), _didEventBufferRunOutOfMemory };
-            auto                               events = _eventBuffer.GetBase();
-
-
-            _eventBuffer.RebaseAndReset(_flipFrame(info, events));
-
-            
-            _traceFrame                   = false;
-            _didEventBufferRunOutOfMemory = false;
-        }
-
-
-        // Increment timings
-        _frameIndex += 1;
-        _tMs        += deltaMs;
-
-
-        // Early out if disabled
-        if (!_isEnabled())
-        {
-            return;
-        }
-
-
-        // Schedule tracing if conditions met
-        if (_tMs >= _rateMs)
-        {
-            _traceFrame = true;
-
-
-            if (!_rateMs)
-            {
-                _tMs = 0;
-            }
-            else
-            {
-                while (_tMs >= _rateMs)
-                {
-                    _tMs -= _rateMs;
-                }
-            }
-        }
+        return _isTracing;
     }
 
 
@@ -128,7 +75,7 @@ namespace KLab { namespace Profiling { namespace Trace
 
         if (event)
         {
-            _initializeEvent(*event, KLab_Profiling_Trace_EventType_EnterSection, section, _frameTimer.GetTimestampNs());
+            _initializeEvent(*event, KLab_Profiling_Trace_EventType_EnterSection, section, _timer.GetTimestampNs());
         }
         else
         {
@@ -144,7 +91,7 @@ namespace KLab { namespace Profiling { namespace Trace
 
         if (event)
         {
-            _initializeEvent(*event, KLab_Profiling_Trace_EventType_LeaveSection, section, _frameTimer.GetTimestampNs());
+            _initializeEvent(*event, KLab_Profiling_Trace_EventType_LeaveSection, section, _timer.GetTimestampNs());
         }
         else
         {
@@ -155,35 +102,31 @@ namespace KLab { namespace Profiling { namespace Trace
 
     bool CSharpTrace::_isEnabled() const
     {
-        return (_flipFrame != nullptr);
+        return _isTracing;
     }
 
 
-    void CSharpTrace::_enable(KLab_Profiling_Trace_FlipFrameFunction flipFrame, const uint32_t eventBufferCapacity, const uint32_t rateMs)
+    void CSharpTrace::_enable(KLab_Profiling_Trace_EventInfo *eventBuffer, const uint32_t eventBufferCapacity)
     {
-        _flipFrame  = flipFrame;
-        _rateMs     = rateMs;
-        _tMs        = 0;
-        _traceFrame = false;
+        // Initialize state
+        _timer.Reset();
+        _eventBuffer.Initialize(eventBuffer, eventBufferCapacity);
 
-
-        _frameTimer.Reset();
-
-
-        // Initialize event buffer
-        {
-            KLab_Profiling_Trace_FlipFrameInfo dummyInfo = { 0, 0, 0, 0 };
-
-
-            _eventBuffer.Initialize(_flipFrame(dummyInfo, nullptr), eventBufferCapacity);
-        }
+        _isTracing = true;
     }
     
 
-    void CSharpTrace::_disable()
+    KLab_Profiling_Trace_TraceInfo CSharpTrace::_disable()
     {
-        _flipFrame  = nullptr;
-        _traceFrame = false;
+        _isTracing = false;
+
+
+        return
+        {
+            _timer.GetTimestampNs(),
+            _eventBuffer.GetLength(),
+            _didEventBufferRunOutOfMemory
+        };
     }
 
 
@@ -201,10 +144,9 @@ namespace KLab { namespace Profiling { namespace Trace
 // TRACE //
 // ----- //
 
-KLab_Profiling_ErrorCode KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_Trace_Enable(KLab_Profiling_Trace_FlipFrameFunction flipFrame, const int32_t eventBufferSize, const float rateS)
+KLab_Profiling_ErrorCode KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_TraceUtility_BeginTrace(KLab_Profiling_Trace_EventInfo *eventBuffer, const int32_t eventBufferSize)
 {
     auto &trace  = KLab::Profiling::Trace::GetCSharpTrace();
-    auto  rateMs = uint32_t((rateS < 0.0f) ? 0 : (rateS * 1000.0f));
 
 
     // Validate state
@@ -215,23 +157,34 @@ KLab_Profiling_ErrorCode KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_Trace_En
 
 
     // Validate arguments
-    if (!flipFrame || (eventBufferSize <= 0))
+    if (!eventBuffer || (eventBufferSize <= 0))
     {
         return KLab_Profiling_ErrorCode_InvalidArgument;
     }
 
 
-    trace._enable(flipFrame, uint32_t(eventBufferSize), rateMs);
+    trace._enable(eventBuffer, uint32_t(eventBufferSize));
 
 
     return KLab_Profiling_ErrorCode_NoError;
 }
 
 
-void KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_Trace_Disable()
+KLab_Profiling_ErrorCode KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_TraceUtility_EndTrace(KLab_Profiling_Trace_TraceInfo *info)
 {
     auto &trace = KLab::Profiling::Trace::GetCSharpTrace();
 
 
-    trace._disable();
+    // Validate state
+    if (!trace._isEnabled())
+    {
+        return KLab_Profiling_ErrorCode_InvalidState;
+    }
+
+
+    // Store trace result
+    *info = trace._disable();
+
+
+    return KLab_Profiling_ErrorCode_NoError;
 }

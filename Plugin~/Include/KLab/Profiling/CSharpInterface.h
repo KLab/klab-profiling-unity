@@ -52,8 +52,8 @@ typedef int32_t KLab_Profiling_ErrorCode;
 /// Initializes plugin
 /// @return ::KLab_Profiling_ErrorCode_NoError on success; an error code otherwise
 KLab_Profiling_ErrorCode KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_Plugin_Initialize();
-/// Flips (trace) frame
-void KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_Plugin_FlipFrame();
+/// Called once per game frame to allow internal update
+void KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_Plugin_Update();
 
 
 // ----------- //
@@ -102,36 +102,28 @@ typedef struct
 KLab_Profiling_Trace_EventInfo;
 
 
-/// Trace frame flip info
+/// Trace info
 typedef struct
 {
-    /// Index of traced frame
-    uint64_t FrameIndex;
-    /// Duration of traced frame in milliseconds
-    uint32_t FrameDurationMs;
+    /// Duration of tracee in nanoseconds
+    uint64_t DurationNs;
     /// Number of trace events
     uint32_t EventCount;
     /// Flag whether buffer couldn't fit trace events
     uint32_t DidRunOutOfEventMemory;
 }
-KLab_Profiling_Trace_FlipFrameInfo;
-
-
-/// Trace frame flip function
-/// @param info - Info on traced frame
-/// @param events - Trace events (that is null on first invokation)
-/// @return next buffer to use for tracing next events
-typedef KLab_Profiling_Trace_EventInfo *(*KLab_Profiling_Trace_FlipFrameFunction)(const KLab_Profiling_Trace_FlipFrameInfo info, KLab_Profiling_Trace_EventInfo *events);
+KLab_Profiling_Trace_TraceInfo;
 
 
 /// Enables C# callback driven tracing
-/// @param flipFrame - Function for flipping trace frame
-/// @param eventBufferSize - Capacity of event frame buffer(s)
-/// @param rateS - Rate to trace frames at (in seconds)
+/// @param eventBuffer - Buffer for trace events
+/// @param eventBufferSize - Capacity of buffer
 /// @return ::KLab_Profiling_ErrorCode_NoError on success; an error code otherwise
-KLab_Profiling_ErrorCode KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_Trace_Enable(KLab_Profiling_Trace_FlipFrameFunction flipFrame, const int32_t eventBufferSize, const float rateS);
-/// Disables C# callback driven tracing
-void KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_Trace_Disable();
+KLab_Profiling_ErrorCode KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_TraceUtility_BeginTrace(KLab_Profiling_Trace_EventInfo *eventBuffer, const int32_t eventBufferSize);
+/// Ends C# started tracing
+/// @param info - Buffer for info on trace
+/// @return ::KLab_Profiling_ErrorCode_NoError on success; an error code otherwise
+KLab_Profiling_ErrorCode KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_TraceUtility_EndTrace(KLab_Profiling_Trace_TraceInfo *info);
 
 
 #if (__cplusplus)

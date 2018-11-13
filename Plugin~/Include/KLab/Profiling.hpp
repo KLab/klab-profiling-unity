@@ -41,8 +41,6 @@ namespace KLab { namespace Profiling { namespace Trace
         /// Flags whether should trace
         /// @return whether tracer is tracing 
         virtual bool IsTracing() = 0;
-        /// [Optional] Called once at end of frame to flip trace frame
-        virtual void Flip() {} 
         /// Handles entering section enter
         /// @param section - Info on section
         virtual void EnterSection(const SectionInfo &section) = 0;

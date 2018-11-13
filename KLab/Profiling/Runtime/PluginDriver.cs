@@ -24,8 +24,8 @@ namespace KLab.Profiling
             public static extern LowLevel.ErrorCode Initialize();
 
 
-            [DllImport(PluginInfo.DllName, EntryPoint = "KLab_Profiling_Plugin_FlipFrame")]
-            public static extern void FlipFrame();
+            [DllImport(PluginInfo.DllName, EntryPoint = "KLab_Profiling_Plugin_Update")]
+            public static extern void Update();
         }
 
 
@@ -54,7 +54,7 @@ namespace KLab.Profiling
         {
             // INV How to handle platform support detection more gracefully
             var isPlatformSupported = Application.isEditor;
-            isPlatformSupported = isPlatformSupported
+            isPlatformSupported     = isPlatformSupported
                 || (Application.platform == RuntimePlatform.Android)
                 || (Application.platform == RuntimePlatform.IPhonePlayer)
                 || (Application.platform == RuntimePlatform.LinuxPlayer)
@@ -95,25 +95,25 @@ namespace KLab.Profiling
         /// Flips frame
         /// </summary>
         /// <returns>Scheduling timer</returns>
-        private IEnumerator FlipFrame()
+        private IEnumerator CUpdate()
         {
             for (;;)
             {
                 yield return new WaitForEndOfFrame();
 
 
-                C.FlipFrame();
+                C.Update();
             }
         }
 
         #region Unity Event Handling
 
         /// <summary>
-        /// Schedules <see cref="FlipFrame"/>
+        /// Schedules <see cref="CUpdate"/>
         /// </summary>
         private void Awake()
         {
-            StartCoroutine(FlipFrame());
+            StartCoroutine(CUpdate());
         }
 
         #endregion

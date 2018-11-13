@@ -187,12 +187,12 @@ namespace KLab { namespace Profiling { namespace Plugin
     }
 
 
-    // Flips frame
-    static void _flipFrame()
+    // Updates context
+    static void _update()
     {
-        auto       &context = GetPluginContext();
+        auto       &context                 = GetPluginContext();
         const bool  shouldRegisterCallbacks = (_isATraceTracing(context) || _isCSharpTracing(context) || _isExternTracing(context));
-        static bool hasRegisteredCallbacks = false;
+        static bool hasRegisteredCallbacks  = false;
 
 
         // Register/Unregister callbacks dynamically
@@ -211,17 +211,6 @@ namespace KLab { namespace Profiling { namespace Plugin
 
             hasRegisteredCallbacks = shouldRegisterCallbacks;
         }
-
-
-        // Tick C# trace (which is always available)
-        context.Trace.CSharpTrace->Flip();
-
-
-        // Tick extern trace if available
-        if (context.Trace.ExternTrace)
-        {
-            context.Trace.ExternTrace->Flip();
-        }
     }
 }}}
 
@@ -237,7 +226,7 @@ KLab_Profiling_ErrorCode UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API KLab_Profili
 }
 
 
-void KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_Plugin_FlipFrame()
+void KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_Plugin_Update()
 {
     using namespace KLab::Profiling::Plugin;
 
@@ -249,7 +238,7 @@ void KLAB_PROFILING_CSHARP_INTERFACE KLab_Profiling_Plugin_FlipFrame()
     }
 
 
-    _flipFrame();
+    _update();
 }
 
 
@@ -258,7 +247,7 @@ void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces
     auto &context = KLab::Profiling::Plugin::CreatePluginContext(unity);
     
     
-    // Prevent potential 'unused' warnings
+    // Prevent 'unused' warnings
     (void)context;
 }
 

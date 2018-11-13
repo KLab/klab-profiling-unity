@@ -126,8 +126,8 @@ namespace KLab { namespace Profiling
     };
 
 
-    /// Frame timing utility
-    struct FrameTimer final
+    /// Stopwatch utility
+    struct Stopwatch final
     {
         /// Gets offset since last frame flip
         /// @return the offset since last frame flip in nanoseconds
@@ -138,18 +138,6 @@ namespace KLab { namespace Profiling
 
 
             return uint64_t(offset.count());
-        }
-        
-        /// Flips frame
-        /// @returns the offset since last flip in milliseconds
-        inline uint32_t FlipMs()
-        {
-            auto thisFlip = std::chrono::high_resolution_clock::now();
-            auto offset   = std::chrono::duration_cast<std::chrono::milliseconds>(thisFlip - _lastFlip);
-            _lastFlip     = thisFlip;
-
-
-            return uint32_t(offset.count());
         }
 
         /// Resets timer
@@ -238,20 +226,12 @@ namespace KLab { namespace Profiling { namespace Trace
         /// @param section - Info on section
         void LeaveSection(const SectionInfo &section);
 
-        // Frame index
-        uint64_t _frameIndex = 0;
         // Frame time
-        FrameTimer _frameTimer;
+        Stopwatch _timer;
         // Trace event buffer
         AtomicBuffer<KLab_Profiling_Trace_EventInfo> _eventBuffer;
-        // Frame flip function
-        KLab_Profiling_Trace_FlipFrameFunction _flipFrame = nullptr;
-        // Rate to trace at in milliseconds
-        uint32_t _rateMs = 0;
-        // Offset since last trace in milliseconds
-        uint32_t _tMs = 0;
         // Flag whether to trace current frame
-        bool _traceFrame = false;
+        bool _isTracing = false;
         // Flag whether event buffer ran full
         bool _didEventBufferRunOutOfMemory = false;
 
@@ -259,12 +239,12 @@ namespace KLab { namespace Profiling { namespace Trace
         // @return true if enabled; false otherwise
         bool _isEnabled() const;
         // Enables tracing (expecting valid arguments)
-        // @param flipFrame - Trace frame flip function
+        // @param eventBuffer - Trace frame flip function
         // @param eventBufferCapacity - Event buffer capacity
-        // @param rateMs - Rate to trace at in milliseconds
-        void _enable(KLab_Profiling_Trace_FlipFrameFunction flipFrame, const uint32_t eventBufferCapacity, const uint32_t rateMs);
+        void _enable(KLab_Profiling_Trace_EventInfo *eventBuffer, const uint32_t eventBufferCapacity);
         // Disables tracing
-        void _disable();
+        // @return Info on trace
+        KLab_Profiling_Trace_TraceInfo _disable();
 
         // Defaults construction
         CSharpTrace() = default;

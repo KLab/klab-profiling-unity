@@ -70,37 +70,23 @@ namespace KLab.Profiling.LowLevel
         /// Info on trace frame flip
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct FlipFrameInfo
+        public struct TraceInfo
         {
             /// <summary>
-            /// Index of traced frame
+            /// Duration of traced frame in nanoseconds 
             /// </summary>
-            public ulong FrameIndex;
-
-            /// <summary>
-            /// Duration of traced frame in milliseconds 
-            /// </summary>
-            public uint FrameDurationMs;
+            public ulong DurationNs;
 
             /// <summary>
             /// Number of trace events
             /// </summary>
-            public ushort EventCount;
+            public uint EventCount;
 
             /// <summary>
             /// Flag whether event buffer ran out of memory
             /// </summary>
-            public ushort DidRunOutOfEventMemory;
+            public uint DidRunOutOfEventMemory;
         }
-
-
-        /// <summary>
-        /// Flips trace frame
-        /// </summary>
-        /// <param name="info">Info on traced frame</param>
-        /// <param name="events">Events buffer (which is <see langword="null"/> on initial flip)</param>
-        /// <returns>Next event buffer</returns>
-        public unsafe delegate EventInfo* FlipFrameFunction(FlipFrameInfo info, EventInfo* events);
     }
 
 
@@ -114,23 +100,22 @@ namespace KLab.Profiling.LowLevel
         /// </summary>
         private static class C
         {
-            [DllImport(PluginInfo.DllName, EntryPoint = "KLab_Profiling_Trace_Enable")]
-            public static extern ErrorCode Enable(IntPtr flipFrame, int eventBufferCapacity, float rateS);
+            [DllImport(PluginInfo.DllName, EntryPoint = "KLab_Profiling_TraceUtility_BeginTrace")]
+            public static extern ErrorCode BeginTrace(IntPtr eventBufferFrame, int eventBufferCapacity);
 
 
-            [DllImport(PluginInfo.DllName, EntryPoint = "KLab_Profiling_Trace_Disable")]
-            public static extern void Disable();
+            [DllImport(PluginInfo.DllName, EntryPoint = "KLab_Profiling_TraceUtility_EndTrace")]
+            public static extern ErrorCode EndTrace(ref Trace.TraceInfo info);
         }
 
 
         /// <summary>
         /// Begins tracing
         /// </summary>
-        /// <param name="flip">Delegate for flipping trace frame that must be valid until at least <see cref="EndTracing"/> called</param>
+        /// <param name="eventBuffer"><see cref="TraceEventInfo"/> array buffer</param>
         /// <param name="eventBufferCapacity">Capacity of buffer for <see cref="TraceEventInfo"/></param>
-        /// <param name="rate">Rate at which to trace in seconds</param>
         /// <returns><see cref="ErrorCode.NoError"/> on success; an error otherwise</returns>
-        public static ErrorCode BeginTrace(Trace.FlipFrameFunction flip, int eventBufferCapacity, float rate)
+        public static ErrorCode BeginTrace(IntPtr eventBuffer, int eventBufferCapacity)
         {
             // Validate availability
             if (!PluginInfo.IsPluginAvailable)
@@ -140,35 +125,29 @@ namespace KLab.Profiling.LowLevel
 
             
             // Validate arguments
-            if ((flip == null) || (eventBufferCapacity <= 0))
+            if ((eventBuffer == IntPtr.Zero) || (eventBufferCapacity <= 0))
             {
                 return ErrorCode.InvalidArgument;
             }
-            if (rate < 0.0f)
-            {
-                rate = 0.0f;
-            }
 
 
-            var flipFunctionPointer = Marshal.GetFunctionPointerForDelegate(flip);
-
-
-            return C.Enable(flipFunctionPointer, eventBufferCapacity, rate);
+            return C.BeginTrace(eventBuffer, eventBufferCapacity);
         }
 
 
         /// <summary>
         /// Ends tracing
         /// </summary>
-        public static void EndTrace()
+        public static ErrorCode EndTrace(ref Trace.TraceInfo info)
         {
+            // Validate availability
             if (!PluginInfo.IsPluginAvailable)
             {
-                return;
+                return ErrorCode.NotAvailable;
             }
 
 
-            C.Disable();
+            return C.EndTrace(ref info);
         }
     }
 }

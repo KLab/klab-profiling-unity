@@ -69,7 +69,7 @@ Fixing issues and contributing directly to the code base is more than welcome. A
 Please stick to the [*Microsoft* naming guidelines](https://docs.microsoft.com/en-ca/dotnet/standard/design-guidelines/naming-guidelines)
 when contributing *C#* code and document public interfaces with *XML*. Please also stick to the guidelines for *C++*.
 For *C*, "emulate" namespaces by using underscores instead of the double colons in *C++*, i.e. write `KLab::Profiling` as `KLab_Profiling`.
-Public *C/C++* interfaces should be documented in *http://www.doxygen.org/* syntax if possible.
+Public *C/C++* interfaces should be documented in [*Doxygen*](http://www.doxygen.org/) syntax if possible.
 
 
 ## Feedback
